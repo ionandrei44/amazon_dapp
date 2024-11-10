@@ -16,6 +16,13 @@ contract Dappazon {
 
   mapping(uint256 => Item) public items;
 
+  event List(string name, uint256 cost, uint256 quantity);
+
+  modifier onlyOwner() {
+    require(msg.sender == owner);
+    _;
+  }
+
   constructor() {
     owner = msg.sender;
   }
@@ -29,7 +36,7 @@ contract Dappazon {
     uint256 _cost,
     uint256 _rating,
     uint256 _stock
-  ) public {
+  ) public onlyOwner {
     // Create item struct
     Item memory item = Item(
       _id,
@@ -43,6 +50,9 @@ contract Dappazon {
 
     // Save item struct to blockchain
     items[_id] = item;
+
+    // Emit an event
+    emit List(_name, _cost, _stock);
   }
 
   // Buy products
