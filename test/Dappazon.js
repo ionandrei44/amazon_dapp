@@ -86,5 +86,35 @@ describe("Dappazon", () => {
       expect(order.time).to.be.greaterThan(0);
       expect(order.item.name).to.equal(NAME);
     });
+
+    it("emits a buy event", async () => {
+      await expect(transaction)
+        .to.emit(dappazon, "Buy")
+        .withArgs(buyer.address, 1, ID);
+    });
+
+    it("reverts purchase when insufficient Ether is sent", async () => {
+      const insufficientPayment = COST.sub(
+        ethers.utils.parseUnits("0.1", "ether")
+      );
+
+      await expect(
+        dappazon.connect(buyer).buy(ID, { value: insufficientPayment })
+      ).to.be.revertedWith("Not enough Ether sent");
+    });
+
+    it("reverts purchase when item is out of stock", async () => {
+      for (let i = 1; i < STOCK; i++) {
+        transaction = await dappazon.connect(buyer).buy(ID, { value: COST });
+        await transaction.wait();
+      }
+
+      const item = await dappazon.items(ID);
+      expect(item.stock).to.equal(0);
+
+      await expect(
+        dappazon.connect(buyer).buy(ID, { value: COST })
+      ).to.be.revertedWith("Item out of stock");
+    });
   });
 });
