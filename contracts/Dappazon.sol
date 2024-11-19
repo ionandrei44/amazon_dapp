@@ -81,7 +81,7 @@ contract Dappazon {
     orderCount[msg.sender]++;
     orders[msg.sender][orderCount[msg.sender]] = order;
 
-    // Substract stock
+    // Subtract stock
     items[_id].stock = item.stock - 1;
 
     // Emit event
@@ -89,4 +89,8 @@ contract Dappazon {
   }
 
   // Withdraw funds
+  function withdraw() public onlyOwner {
+    (bool success, ) = owner.call{ value: address(this).balance }("");
+    require(success);
+  }
 }
